@@ -10,7 +10,12 @@ const adminRoutes = require("./routes/admin");
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:8080', 'http://localhost:8081', 'http://localhost:3000', 'http://localhost:3001'],
+  origin: [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "https://eventflow-grp26.vercel.app",
+    "https://admin-eventflow-grp26.vercel.app"
+  ],
   credentials: true
 }));
 app.use(express.json());
