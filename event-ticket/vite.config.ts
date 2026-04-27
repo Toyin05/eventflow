@@ -1,9 +1,12 @@
-import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 
 export default defineConfig({
-  vite: {
-    build: {
-      outDir: "dist"
-    }
+  plugins: [TanStackRouterVite(), react()],
+  base: '/',
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true
   }
-});
+})
