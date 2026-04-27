@@ -7,9 +7,14 @@ import path from 'path'
 export default defineConfig({
   plugins: [TanStackRouterVite(), react(), nodePolyfills()],
   base: '/',
+  define: {
+    'process.env': {},
+  },
   build: {
     outDir: 'dist',
-    emptyOutDir: true
+    rollupOptions: {
+      external: ['node:async_hooks'],
+    },
   },
   resolve: {
     alias: {
