@@ -14,7 +14,7 @@ function Index() {
     if (user) {
       navigate({ to: "/events" });
     }
-  }, [user, navigate]);
+  }, [user]);
 
   if (user) {
     return null; // Will redirect
@@ -30,8 +30,8 @@ function Index() {
               Your Ticket to Every <span className="text-gradient">Moment That Matters</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg">
-              EventFlow is Nigeria's easiest way to discover events, register instantly, and get
-              your ticket in seconds. Concerts, conferences, workshops, campus events — all in one
+              EventFlow is an easy way to discover events, register instantly, and get
+              your ticket in seconds. Concerts, conferences, workshops, campus events, all in one
               place.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

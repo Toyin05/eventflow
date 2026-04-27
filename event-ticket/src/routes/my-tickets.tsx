@@ -20,7 +20,7 @@ function MyTicketsPage() {
     if (!authLoading && !isAuthenticated) {
       navigate({ to: "/login", search: { redirect: "/my-tickets" } });
     }
-  }, [authLoading, isAuthenticated, navigate]);
+  }, [authLoading, isAuthenticated]);
 
   const load = () => {
     if (!isAuthenticated) return;

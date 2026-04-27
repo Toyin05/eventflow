@@ -21,7 +21,7 @@ function Events() {
     if (!isAuthenticated) {
       navigate({ to: "/login" });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated]);
 
   const loadEvents = () => {
     setLoading(true);
