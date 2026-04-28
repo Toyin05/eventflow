@@ -79,7 +79,7 @@ function TicketDetail() {
       link.download = `EventFlow-Ticket.png`;
       link.click();
     } catch (err) {
-      // Silent error handling for production
+      // Silent error handling
     }
   };
 
