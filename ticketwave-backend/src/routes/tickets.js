@@ -50,4 +50,28 @@ router.get('/recent', authMiddleware, async (req, res) => {
   }
 });
 
+router.delete('/:ticketCode', authMiddleware, async (req, res) => {
+  const { ticketCode } = req.params;
+  const userId = req.user.id;
+
+  try {
+    const ticket = await prisma.ticket.findFirst({
+      where: { ticketCode, userId }
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket not found or unauthorized" });
+    }
+
+    await prisma.ticket.delete({
+      where: { id: ticket.id }
+    });
+
+    res.json({ message: "Unregistered successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to unregister" });
+  }
+});
+
 module.exports = router;

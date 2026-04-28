@@ -4,6 +4,7 @@ import { eventsApi, type EventItem, type Ticket } from "@/api";
 import { ErrorState, Spinner } from "@/components/States";
 import { useAuth } from "@/context/AuthContext";
 import { formatDate, formatTime } from "@/utils/format";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/events_/$id")({
   component: EventDetail,
@@ -19,7 +20,6 @@ function EventDetail() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [registeredTicket, setRegisteredTicket] = useState<Ticket | null>(null);
-  const [registerError, setRegisterError] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -35,18 +35,38 @@ function EventDetail() {
 
   const handleRegister = async () => {
     if (!isAuthenticated) {
+      toast.error("Sign in Required", {
+        description: "Please log in to reserve your spot for this event.",
+      });
       navigate({ to: "/login", search: { redirect: `/events/${id}` } });
       return;
     }
+
     setSubmitting(true);
-    setRegisterError(null);
     try {
       const ticket = await eventsApi.register(id);
       setRegisteredTicket(ticket);
-      // Redirect to ticket page after successful registration
+
+      toast.success("Registered!", {
+        description: "You're now registered for this event.",
+      });
       navigate({ to: "/tickets/$ticketCode", params: { ticketCode: ticket.ticketCode } });
     } catch (e: any) {
-      setRegisterError(e?.response?.data?.message || "Could not register for this event.");
+      const serverMessage = e?.response?.data?.error || e?.response?.data?.message || "Registration failed.";
+
+      if (serverMessage.toLowerCase().includes("already") || serverMessage.toLowerCase().includes("registered")) {
+        toast.info("Already Registered", {
+          description: "You're already on the list! Would you like to see your ticket?",
+          action: {
+            label: "View Tickets",
+            onClick: () => navigate({ to: "/my-tickets" }),
+          },
+        });
+      } else {
+        toast.error("Registration Issue", {
+          description: serverMessage
+        });
+      }
     } finally {
       setSubmitting(false);
     }
@@ -140,8 +160,6 @@ function EventDetail() {
               </button>
             )}
           </div>
-
-          {registerError && <p className="mt-3 text-sm text-destructive">{registerError}</p>}
         </div>
       </div>
     </div>

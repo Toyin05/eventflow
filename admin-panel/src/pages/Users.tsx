@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, Trash2 } from "lucide-react";
 import { adminApi } from "../api";
 
 interface UserItem {
@@ -17,6 +17,8 @@ export default function Users() {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; user: UserItem | null }>({ isOpen: false, user: null });
+  const [deleting, setDeleting] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -50,6 +52,24 @@ export default function Users() {
       toast.error(message);
     } finally {
       setBusyId(null);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.user) return;
+    setDeleting(true);
+    try {
+      await adminApi.deleteUser(deleteModal.user.id);
+      setUsers(users.filter(u => u.id !== deleteModal.user!.id));
+      setDeleteModal({ isOpen: false, user: null });
+      toast.success("User deleted successfully");
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        "Failed to delete user";
+      toast.error(message);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -126,21 +146,28 @@ export default function Users() {
                     <td className="px-6 py-3 text-[color:var(--color-text-muted)]">
                       {u.ticketCount}
                     </td>
-                    <td className="px-6 py-3">
-                      <div className="flex justify-end">
-                        <button
-                          onClick={() => toggleRole(u)}
-                          disabled={busyId === u.id}
-                          className={u.role === "admin" ? "btn-danger" : "btn-outline"}
-                        >
-                          {busyId === u.id
-                            ? "Working..."
-                            : u.role === "admin"
-                              ? "Revoke Admin"
-                              : "Make Admin"}
-                        </button>
-                      </div>
-                    </td>
+                     <td className="px-6 py-3">
+                       <div className="flex justify-end gap-2">
+                         <button
+                           onClick={() => toggleRole(u)}
+                           disabled={busyId === u.id}
+                           className={u.role === "admin" ? "btn-danger" : "btn-outline"}
+                         >
+                           {busyId === u.id
+                             ? "Working..."
+                             : u.role === "admin"
+                               ? "Revoke Admin"
+                               : "Make Admin"}
+                         </button>
+                         <button
+                           onClick={() => setDeleteModal({ isOpen: true, user: u })}
+                           title="Delete User"
+                           className="rounded-lg border border-red-500 bg-surface p-1.5 text-red-500 transition-colors hover:bg-red-50"
+                         >
+                           <Trash2 size={16} />
+                         </button>
+                       </div>
+                     </td>
                   </tr>
                 ))}
               </tbody>
@@ -148,6 +175,43 @@ export default function Users() {
           </div>
         )}
       </div>
+
+      {deleteModal.isOpen && deleteModal.user && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-background/60 backdrop-blur-md animate-in fade-in duration-300"
+            onClick={() => setDeleteModal({ isOpen: false, user: null })}
+          />
+          <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-border bg-gradient-card p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex flex-col items-center text-center">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+                <Trash2 size={24} />
+              </div>
+              <h3 className="font-display text-xl font-bold">Delete User Account?</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Are you sure you want to delete <span className="font-semibold text-foreground">"{deleteModal.user.fullName}"</span>?
+                This will permanently remove their profile and cancel all {deleteModal.user.ticketCount} active tickets they hold.
+                This action cannot be undone.
+              </p>
+              <div className="mt-8 flex w-full flex-col gap-3 sm:flex-row">
+                <button
+                  onClick={() => setDeleteModal({ isOpen: false, user: null })}
+                  className="flex-1 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-muted"
+                >
+                  Keep User
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  disabled={deleting}
+                  className="flex-1 rounded-xl bg-destructive px-4 py-2.5 text-sm font-semibold text-destructive-foreground shadow-glow-destructive transition-transform hover:scale-[1.02] disabled:opacity-50"
+                >
+                  {deleting ? "Deleting..." : "Yes, Delete User"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

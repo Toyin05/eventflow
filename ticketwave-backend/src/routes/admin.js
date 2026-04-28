@@ -20,7 +20,49 @@ router.post('/make-first-admin', async (req, res) => {
   }
 });
 
+router.get("/recent", async (req, res) => {
+  try {
+    const tickets = await prisma.ticket.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      include: { event: true, user: true }
+    });
+  const formatted = await Promise.all(tickets.map(async (t) => {
+    const registered = await prisma.ticket.count({ where: { eventId: t.eventId } });
+    return {
+      ticketCode: t.ticketCode,
+      status: t.status,
+      createdAt: t.createdAt,
+      user: { fullName: t.user?.name || 'Unknown', email: t.user?.email || 'N/A' }
+    };
+  }));
+    res.json(formatted);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 router.use(authMiddleware, adminMiddleware);
+
+router.get("/events/:id/tickets", async (req, res) => {
+  try {
+    const tickets = await prisma.ticket.findMany({
+      where: { eventId: req.params.id },
+      include: { user: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    const formatted = tickets.map(t => ({
+      ticketCode: t.ticketCode,
+      status: t.status,
+      createdAt: t.createdAt,
+      user: { fullName: t.user.name, email: t.user.email }
+    }));
+    res.json(formatted);
+  } catch {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 router.get("/stats", async (req, res) => {
   try {
@@ -74,10 +116,15 @@ router.put("/events/:id", async (req, res) => {
 
 router.delete("/events/:id", async (req, res) => {
   try {
-    await prisma.event.delete({ where: { id: req.params.id } });
-    res.json({ message: "Event deleted" });
-  } catch {
-    res.status(500).json({ error: "Server error" });
+    await prisma.$transaction(async (prisma) => {
+      // First, delete all tickets associated with the event
+      await prisma.ticket.deleteMany({ where: { eventId: req.params.id } });
+      // Then, delete the event
+      await prisma.event.delete({ where: { id: req.params.id } });
+    });
+    res.json({ message: "Event deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message || "Failed to delete event" });
   }
 });
 
@@ -119,6 +166,25 @@ router.patch("/users/:id/role", async (req, res) => {
     });
   } catch {
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.delete("/users/:id", async (req, res) => {
+  const userId = req.params.id;
+  const adminId = req.user.id;
+
+  if (userId === adminId) {
+    return res.status(400).json({ message: "Cannot delete your own account" });
+  }
+
+  try {
+    await prisma.$transaction(async (prisma) => {
+      await prisma.ticket.deleteMany({ where: { userId } });
+      await prisma.user.delete({ where: { id: userId } });
+    });
+    res.json({ message: "User deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to delete user" });
   }
 });
 

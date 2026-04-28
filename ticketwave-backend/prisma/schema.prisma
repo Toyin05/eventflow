@@ -36,5 +36,5 @@ model Ticket {
   eventId    String
   createdAt  DateTime @default(now())
   user       User     @relation(fields: [userId], references: [id])
-  event      Event    @relation(fields: [eventId], references: [id])
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }

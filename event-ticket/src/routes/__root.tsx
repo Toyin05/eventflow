@@ -1,4 +1,5 @@
 import { Outlet, Link, createRootRoute } from "@tanstack/react-router";
+import { Toaster } from 'sonner';
 import { AuthProvider } from "@/context/AuthContext";
 import { Navbar } from "@/components/Navbar";
 
@@ -32,6 +33,19 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <AuthProvider>
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          style: {
+            background: '#ffffff',
+            color: '#000000',
+            border: '1px solid #e2e8f0',
+            borderRadius: '12px',
+            padding: '12px 16px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+          },
+        }}
+      />
       <div className="flex min-h-screen flex-col">
         <Navbar />
         <main className="flex-1">

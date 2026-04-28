@@ -50,11 +50,12 @@ export const authApi = {
 export const eventsApi = {
   list: () => api.get<EventItem[]>("/events").then((r) => r.data),
   get: (id: string) => api.get<EventItem>(`/events/${id}`).then((r) => r.data),
-  register: (id: string) => api.post<Ticket>(`/events/${id}/register`).then((r) => r.data),
+  register: (id: string) => api.post<Ticket>(`/events/${id}/register`, {}).then((r) => r.data),
 };
 
 // Tickets
 export const ticketsApi = {
   mine: () => api.get<Ticket[]>("/tickets/my").then((r) => r.data),
   get: (code: string) => api.get<Ticket>(`/tickets/${code}`).then((r) => r.data),
+  unregister: (ticketCode: string) => api.delete(`/tickets/${ticketCode}`).then((r) => r.data),
 };

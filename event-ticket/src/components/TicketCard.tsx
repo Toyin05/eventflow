@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { Ticket } from "@/api";
 import { formatDate, formatTime } from "@/utils/format";
 
-export function TicketCard({ ticket }: { ticket: Ticket }) {
+export function TicketCard({ ticket, onUnregister }: { ticket: Ticket; onUnregister?: (ticket: Ticket) => void }) {
   const valid = ticket.status === "valid";
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-border bg-gradient-card shadow-card transition-all hover:border-primary/40">
@@ -44,7 +44,7 @@ export function TicketCard({ ticket }: { ticket: Ticket }) {
               <span className="text-foreground">{ticket.ticketCode}</span>
             </div>
           </div>
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex items-center justify-between">
             <Link
               to="/tickets/$ticketCode"
               params={{ ticketCode: ticket.ticketCode }}
@@ -55,6 +55,14 @@ export function TicketCard({ ticket }: { ticket: Ticket }) {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
             </Link>
+            {onUnregister && (
+              <button
+                onClick={() => onUnregister(ticket)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-destructive bg-surface px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5"
+              >
+                Unregister
+              </button>
+            )}
           </div>
         </div>
       </div>

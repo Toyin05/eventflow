@@ -2,8 +2,10 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ticketsApi, type Ticket } from "@/api";
 import { TicketCard } from "@/components/TicketCard";
+import { CancelTicketModal } from "@/components/CancelTicketModal";
 import { EmptyState, ErrorState, Spinner } from "@/components/States";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/my-tickets")({
   component: MyTicketsPage,
@@ -15,6 +17,8 @@ function MyTicketsPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cancelModal, setCancelModal] = useState<{ isOpen: boolean; ticket: Ticket | null }>({ isOpen: false, ticket: null });
+  const [unregisterLoading, setUnregisterLoading] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -34,6 +38,33 @@ function MyTicketsPage() {
   };
 
   useEffect(load, [isAuthenticated]);
+
+  const handleUnregister = async () => {
+    if (!cancelModal.ticket) return;
+    setUnregisterLoading(true);
+    try {
+      await ticketsApi.unregister(cancelModal.ticket.ticketCode);
+      setTickets(tickets.filter(t => t.ticketCode !== cancelModal.ticket!.ticketCode));
+      setCancelModal({ isOpen: false, ticket: null });
+      toast.success("Unregistered successfully", {
+        description: "Your ticket has been cancelled.",
+      });
+    } catch (e: any) {
+      toast.error("Unregistration failed", {
+        description: e?.response?.data?.message || "Please try again.",
+      });
+    } finally {
+      setUnregisterLoading(false);
+    }
+  };
+
+  const openCancelModal = (ticket: Ticket) => {
+    setCancelModal({ isOpen: true, ticket });
+  };
+
+  const closeCancelModal = () => {
+    setCancelModal({ isOpen: false, ticket: null });
+  };
 
   if (!isAuthenticated) return null;
 
@@ -61,10 +92,18 @@ function MyTicketsPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {tickets.map((t) => (
-            <TicketCard key={t.ticketCode} ticket={t} />
+            <TicketCard key={t.ticketCode} ticket={t} onUnregister={openCancelModal} />
           ))}
         </div>
       )}
+
+      <CancelTicketModal
+        isOpen={cancelModal.isOpen}
+        onClose={closeCancelModal}
+        onConfirm={handleUnregister}
+        loading={unregisterLoading}
+        eventTitle={cancelModal.ticket?.event.title || ""}
+      />
     </div>
   );
 }

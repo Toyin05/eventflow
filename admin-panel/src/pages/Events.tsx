@@ -44,14 +44,14 @@ export default function Events() {
     setDeleting(true);
     try {
       await adminApi.deleteEvent(toDelete.id);
-      toast.success("Event deleted");
+      toast.success("Event deleted successfully.");
       setToDelete(null);
       load();
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         "Failed to delete event";
-      toast.error(message);
+      toast.error("Cannot delete event with active attendees. Please clear tickets first or contact support.");
     } finally {
       setDeleting(false);
     }

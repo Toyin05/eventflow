@@ -2,6 +2,7 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
+  timeout: 8000, // 8 seconds timeout
 });
 
 api.interceptors.request.use((config) => {
@@ -33,5 +34,7 @@ export const adminApi = {
   getUsers: () => api.get("/admin/users").then((r) => r.data),
   updateUserRole: (id: string, role: string) =>
     api.patch(`/admin/users/${id}/role`, { role }).then((r) => r.data),
-  getRecentTickets: () => api.get("/tickets/recent").then((r) => r.data),
+  deleteUser: (id: string) => api.delete(`/admin/users/${id}`).then((r) => r.data),
+  getRecentTickets: () => api.get("/admin/recent").then((r) => r.data),
+  getEventTickets: (eventId: string) => api.get(`/admin/events/${eventId}/tickets`).then((r) => r.data),
 };
