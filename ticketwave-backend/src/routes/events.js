@@ -24,6 +24,8 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/:id/register", authMiddleware, async (req, res) => {
+  console.log("Register Request Received. Body:", req.body);
+  console.log("User ID from Token:", req.user?.id);
   try {
     const event = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!event) return res.status(404).json({ error: "Event not found" });
@@ -43,8 +45,9 @@ router.post("/:id/register", authMiddleware, async (req, res) => {
     });
 
     res.json(ticket);
-  } catch {
-    res.status(500).json({ error: "Server error" });
+  } catch (error) {
+    console.error("FULL REGISTRATION ERROR:", error);
+    res.status(500).json({ message: "Internal Server Error", detail: error.message });
   }
 });
 
