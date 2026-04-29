@@ -33,6 +33,10 @@ function TicketDetail() {
   const handleDownload = async () => {
     if (!ticketRef.current) return;
 
+    // Set loading state
+    const button = document.querySelector('button[onClick*="handleDownload"]') as HTMLButtonElement;
+    if (button) button.textContent = 'Generating...';
+
     try {
       const canvas = await html2canvas(ticketRef.current, {
         scale: 3,
@@ -73,13 +77,26 @@ function TicketDetail() {
         }
       });
 
-      const image = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.href = image;
-      link.download = `EventFlow-Ticket.png`;
-      link.click();
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `EventFlow-Ticket.png`;
+
+        // Critical for Mobile:
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => {
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        }, 100);
+      });
     } catch (err) {
       // Silent error handling
+    } finally {
+      if (button) button.textContent = 'Download';
     }
   };
 
