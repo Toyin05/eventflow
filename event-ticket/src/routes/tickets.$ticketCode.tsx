@@ -33,14 +33,11 @@ function TicketDetail() {
   const handleDownload = async () => {
     if (!ticketRef.current) return;
 
-    // Set loading state
-    const button = document.querySelector('button[onClick*="handleDownload"]') as HTMLButtonElement;
-    if (button) button.textContent = 'Generating...';
-
     try {
       const canvas = await html2canvas(ticketRef.current, {
         scale: 3,
         useCORS: true,
+        logging: false,
         backgroundColor: "#ffffff",
         onclone: (clonedDoc) => {
           // 1. Create a style tag that forces all Tailwind variables to safe colors
@@ -77,26 +74,28 @@ function TicketDetail() {
         }
       });
 
-      canvas.toBlob((blob) => {
-        if (!blob) return;
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) return;
 
+      const file = new File([blob], 'ticket.png', { type: 'image/png' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'My Event Ticket',
+          text: 'Here is my ticket for the event!',
+        });
+      } else {
+        // Fallback for Desktop:
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `EventFlow-Ticket.png`;
-
-        // Critical for Mobile:
-        document.body.appendChild(link);
+        link.download = 'ticket.png';
         link.click();
-        setTimeout(() => {
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
-        }, 100);
-      });
+        setTimeout(() => window.URL.revokeObjectURL(url), 100);
+      }
     } catch (err) {
       // Silent error handling
-    } finally {
-      if (button) button.textContent = 'Download';
     }
   };
 
