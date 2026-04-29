@@ -39,7 +39,7 @@ function Index() {
                 to="/register"
                 className="inline-flex items-center gap-2 rounded-lg bg-gradient-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.03]"
               >
-                Get Started — It's Free
+                Get Started - It's Free
                 <svg
                   className="h-4 w-4"
                   viewBox="0 0 24 24"

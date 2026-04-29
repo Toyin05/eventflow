@@ -1,8 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { QRCodeCanvas } from 'qrcode.react';
-import html2canvas from "html2canvas";
-import { Download } from "lucide-react";
 import { ticketsApi, type Ticket } from "@/api";
 import { ErrorState, Spinner } from "@/components/States";
 import { formatDate, formatTime } from "@/utils/format";
@@ -13,7 +11,6 @@ export const Route = createFileRoute("/tickets/$ticketCode")({
 
 function TicketDetail() {
   const { ticketCode } = Route.useParams();
-  const ticketRef = useRef<HTMLDivElement>(null);
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,75 +26,6 @@ function TicketDetail() {
   };
 
   useEffect(load, [ticketCode]);
-
-  const handleDownload = async () => {
-    if (!ticketRef.current) return;
-
-    try {
-      const canvas = await html2canvas(ticketRef.current, {
-        scale: 3,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-        onclone: (clonedDoc) => {
-          // 1. Create a style tag that forces all Tailwind variables to safe colors
-          const style = clonedDoc.createElement('style');
-          style.innerHTML = `
-            * {
-              --tw-bg-opacity: 1 !important;
-              --tw-text-opacity: 1 !important;
-              --tw-border-opacity: 1 !important;
-              --tw-shadow-color: #000 !important;
-              /* Force the root to lose oklch/oklab definitions */
-              --color-black: #000000 !important;
-              --color-white: #ffffff !important;
-            }
-            /* Fallback for any element specifically using oklab/oklch */
-            svg, path, div, span {
-              color: inherit !important;
-              background-color: inherit !important;
-              fill: #000 !important;
-            }
-          `;
-          clonedDoc.head.appendChild(style);
-
-          // 2. Remove any lingering toxic style attributes
-          const all = clonedDoc.querySelectorAll('*');
-          all.forEach(el => {
-            if (el instanceof HTMLElement) {
-              // If the element has an oklab color in its computed style, force it to black/white
-              const comp = window.getComputedStyle(el);
-              if (comp.color.includes('okl')) el.style.color = '#000000';
-              if (comp.backgroundColor.includes('okl')) el.style.backgroundColor = '#ffffff';
-            }
-          });
-        }
-      });
-
-      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
-      if (!blob) return;
-
-      const file = new File([blob], 'ticket.png', { type: 'image/png' });
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: 'My Event Ticket',
-          text: 'Here is my ticket for the event!',
-        });
-      } else {
-        // Fallback for Desktop:
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'ticket.png';
-        link.click();
-        setTimeout(() => window.URL.revokeObjectURL(url), 100);
-      }
-    } catch (err) {
-      // Silent error handling
-    }
-  };
 
   if (loading)
     return (
@@ -133,21 +61,12 @@ function TicketDetail() {
           </svg>
           Back to tickets
         </Link>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleDownload}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3.5 py-1.5 text-sm font-medium hover:bg-accent"
-          >
-            <Download className="h-4 w-4" />
-            Download
-          </button>
-          <button
-            onClick={() => window.print()}
-            className="rounded-lg border border-border bg-surface px-3.5 py-1.5 text-sm font-medium hover:bg-accent"
-          >
-            Print
-          </button>
-        </div>
+        <button
+          onClick={() => window.print()}
+          className="rounded-lg border border-border bg-surface px-3.5 py-1.5 text-sm font-medium hover:bg-accent"
+        >
+          Print
+        </button>
       </div>
 
       <div ref={ticketRef} data-ticket-card="true" className="overflow-hidden rounded-3xl border border-[#3b82f6] bg-[#ffffff]" style={{ colorScheme: 'light', color: '#000000' }}>

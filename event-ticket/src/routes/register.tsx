@@ -14,6 +14,8 @@ function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -59,19 +61,23 @@ function RegisterPage() {
         />
         <Field
           label="Password"
-          type="password"
+          type={showPassword ? "text" : "password"}
           value={password}
           onChange={setPassword}
           placeholder="At least 6 characters"
           required
+          showPassword={showPassword}
+          onTogglePassword={() => setShowPassword(!showPassword)}
         />
         <Field
           label="Confirm password"
-          type="password"
+          type={showConfirm ? "text" : "password"}
           value={confirm}
           onChange={setConfirm}
           placeholder="Repeat your password"
           required
+          showPassword={showConfirm}
+          onTogglePassword={() => setShowConfirm(!showConfirm)}
         />
         {error && <p className="text-sm text-destructive">{error}</p>}
         <button

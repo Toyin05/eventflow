@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export const Route = createFileRoute("/login")({
@@ -15,6 +16,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -36,7 +38,7 @@ function LoginPage() {
     <AuthShell title="Welcome back" subtitle="Sign in to access your tickets and bookings.">
       <form onSubmit={handleSubmit} className="space-y-4">
         <Field label="Email" type="email" value={email} onChange={setEmail} placeholder="you@example.com" required />
-        <Field label="Password" type="password" value={password} onChange={setPassword} placeholder="••••••••" required />
+        <Field label="Password" type={showPassword ? "text" : "password"} value={password} onChange={setPassword} placeholder="••••••••" required showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)} />
         {error && <p className="text-sm text-destructive">{error}</p>}
         <button
           type="submit"
@@ -73,7 +75,7 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
 }
 
 export function Field({
-  label, type = "text", value, onChange, placeholder, required,
+  label, type = "text", value, onChange, placeholder, required, showPassword, onTogglePassword,
 }: {
   label: string;
   type?: string;
@@ -81,18 +83,31 @@ export function Field({
   onChange: (v: string) => void;
   placeholder?: string;
   required?: boolean;
+  showPassword?: boolean;
+  onTogglePassword?: () => void;
 }) {
   return (
     <label className="block">
       <span className="mb-1.5 block text-sm font-medium text-foreground">{label}</span>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        required={required}
-        className="w-full rounded-lg border border-input bg-surface px-3.5 py-2.5 text-sm text-foreground outline-none ring-primary/40 placeholder:text-muted-foreground/60 focus:border-primary focus:ring-2"
-      />
+      <div className="relative">
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          required={required}
+          className="w-full rounded-lg border border-input bg-surface px-3.5 py-2.5 pr-10 text-sm text-foreground outline-none ring-primary/40 placeholder:text-muted-foreground/60 focus:border-primary focus:ring-2"
+        />
+        {onTogglePassword && (
+          <button
+            type="button"
+            onClick={onTogglePassword}
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded bg-surface hover:bg-muted text-foreground"
+          >
+            {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+          </button>
+        )}
+      </div>
     </label>
   );
 }
