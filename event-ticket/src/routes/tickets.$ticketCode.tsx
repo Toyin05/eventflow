@@ -93,7 +93,7 @@ function TicketDetail() {
             </p>
 
             <dl className="mt-8 space-y-4">
-              <Row label="Attendee" value={ticket.user.fullName} />
+              <Row label="Attendee" value={ticket.user?.name || "Verified Attendee"} />
               <Row label="Date" value={formatDate(ticket.event.date)} />
               <Row label="Time" value={formatTime(ticket.event.date, ticket.event.time)} />
               <Row label="Location" value={ticket.event.location} />
