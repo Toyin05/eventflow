@@ -69,7 +69,7 @@ function TicketDetail() {
         </button>
       </div>
 
-      <div ref={ticketRef} data-ticket-card="true" className="overflow-hidden rounded-3xl border border-[#3b82f6] bg-[#ffffff]" style={{ colorScheme: 'light', color: '#000000' }}>
+      <div data-ticket-card="true" className="overflow-hidden rounded-3xl border border-[#3b82f6] bg-[#ffffff]" style={{ colorScheme: 'light', color: '#000000' }}>
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto]">
           <div className="p-8 sm:p-10">
             <div className="flex items-center gap-3">
